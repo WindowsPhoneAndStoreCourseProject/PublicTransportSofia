@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -30,8 +32,8 @@ namespace PublicTransportSofia
 
             this.NavigationCacheMode = NavigationCacheMode.Required;
           //  this.ImageCaptcha.DataContext = test;
-
-            //var test = new HttpRequester();
+            
+         //   var test = new HttpRequester();
             
            // test.GetMainPage();
         }

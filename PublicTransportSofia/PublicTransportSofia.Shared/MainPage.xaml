@@ -17,12 +17,18 @@
         <Popup Name="PopupForUserInput"
            VerticalAlignment="Center"
            HorizontalAlignment="Center">
-            <Border BorderThickness="2" Margin="5" BorderBrush="Azure">
+            <Border BorderThickness="2"
+                    Margin="5"
+                    Padding="5"
+                    BorderBrush="Azure">
                 <StackPanel Name="StackPanelTest"  HorizontalAlignment="Stretch"
                     Margin="8,8,8,8" VerticalAlignment="Stretch" >
                     <Image Name="ImageCaptcha" Source="Images/test.jpg"
                   Width="90" />
                     <TextBox Name="TextBoxCaptcha" Width="90"/>
+                    <TextBlock Text="Моля въведете кода на спирката"
+                               FontSize="20"/>
+                    <TextBox Name="TextBoxStationCode" Width="90"/>
                     <Button Content="Submit"
                     HorizontalAlignment="Center"
                     Click="Button_Click"/>
