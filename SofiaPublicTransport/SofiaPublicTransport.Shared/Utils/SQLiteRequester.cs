@@ -130,7 +130,13 @@ namespace SofiaPublicTransport.Utils
         public async Task<List<StationDataModel>> GetAllStationsFromFavourites()
         {
             SQLiteAsyncConnection conn = new SQLiteAsyncConnection(dbName);
-            var stations = await conn.Table<StationDataModel>().ToListAsync();
+            var stations = new List<StationDataModel>();
+            var dbExists = await this.CheckDbAsync(dbName);
+            if (dbExists)
+            {
+                stations = await conn.Table<StationDataModel>().ToListAsync();
+            }
+
             return stations;
         }
 

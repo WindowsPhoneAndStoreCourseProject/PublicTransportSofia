@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -20,8 +21,14 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
+using Windows.UI.Popups;
+using Windows.Networking.Connectivity;
 
+using SofiaPublicTransport.Data;
+using SofiaPublicTransport.DataModel;
+using SofiaPublicTransport.Common;
 using SofiaPublicTransport.ViewModels;
+using SofiaPublicTransport.Utils;
 // The Universal Hub Application project template is documented at http://go.microsoft.com/fwlink/?LinkID=391955
 
 namespace SofiaPublicTransport
@@ -34,6 +41,9 @@ namespace SofiaPublicTransport
         private readonly NavigationHelper navigationHelper;
         private readonly ObservableDictionary defaultViewModel = new ObservableDictionary();
         private readonly ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("Resources");
+        public static event EventHandler ShowUserInputPopup;
+        NetworkStatusChangedEventHandler networkStatusCallback = null;
+        public static bool registeredNetworkStatusNotif = false;
 
         public HubPage()
         {
@@ -136,10 +146,99 @@ namespace SofiaPublicTransport
         }
 
         #endregion
+        bool singleTap;
 
-        private void ListBox_Tapped(object sender, TappedRoutedEventArgs e)
+        private async void OnListBoxTapped(object sender, TappedRoutedEventArgs e)
         {
+            this.singleTap = true;
+            await Task.Delay(200);
+            if (this.singleTap)
+            {
+                var listBox = sender as ListBox;
+                var selectedItem = listBox.SelectedItem as StationDataModel;
+                //var eventArguments = new EventArgs();
+                //eventArguments.
+                try
+                {
+                    ShowUserInputPopup(selectedItem.Code, new EventArgs());
+                }
+                catch (Exception)
+                {
+                }
+                var debug = 2;
+            }
+        }
 
+        private async void OkBtnClick(IUICommand command)
+        {
+            try
+            {
+                await SQLiteRequester.Instance.DeleteFavouriteStationAsync(command.Id.ToString());
+                MessageDialog msgDialog = new MessageDialog("Спирката вече не е в любими", "Успешно изтриване");
+                msgDialog.Commands.Add(new UICommand("ОК"));
+                msgDialog.ShowAsync();
+            }
+            catch (Exception e)
+            {
+                MessageDialog msgDialog = new MessageDialog("За съжаление не успяхме да изтрием тази спирка", "Неуспешно изтриване");
+                msgDialog.Commands.Add(new UICommand("Ще го преживея"));
+                msgDialog.ShowAsync();
+            }
+        }
+
+        private void OnListBoxDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        {
+            this.singleTap = false;
+            var listBox = sender as ListBox;
+            var selectedItem = listBox.SelectedItem as StationDataModel;
+
+            MessageDialog msgDialog = new MessageDialog("Искате ли да изтриете тази спирка от любими", "Сигурни ли сте");
+
+            //OK Button
+            UICommand okBtn = new UICommand("Да");
+            okBtn.Id = int.Parse(selectedItem.Code);
+            okBtn.Invoked = OkBtnClick;
+            msgDialog.Commands.Add(okBtn);
+
+            //Cancel Button
+            msgDialog.Commands.Add(new UICommand("Не"));
+
+            //Show message
+            msgDialog.ShowAsync();
+        }
+
+        private async void OnNetworkStatusChange(object sender)
+        {
+            try
+            {
+                // get the ConnectionProfile that is currently used to connect to the Internet                
+                ConnectionProfile InternetConnectionProfile = NetworkInformation.GetInternetConnectionProfile();
+
+                if (InternetConnectionProfile != null && InternetConnectionProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess)
+                {
+                    MessageDialog msgDialog = new MessageDialog("В момента сте свързани с интернет", "Ура, имате интернет");
+                    msgDialog.Commands.Add(new UICommand("OK"));
+                    msgDialog.ShowAsync();
+                }
+                else
+                {
+                    MessageDialog msgDialog = new MessageDialog("Съжаляваме, но в момента нямате интернет връзка. Приложението няма да ви е от полза в такъв случай.", "Няма интернет");
+                    msgDialog.Commands.Add(new UICommand("OK"));
+                    await msgDialog.ShowAsync();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                //ShowFailNetworkAccessAlert();
+            }
+        }
+
+        private void ShowFailNetworkAccessAlert()
+        {
+            MessageDialog msgDialog = new MessageDialog("Съжаляваме, но няма да можем да Ви уведомяваме за наличието Ви на интернет връзка. Много вероятно е в момента да нямате.", "Възникна проблем");
+            msgDialog.Commands.Add(new UICommand("OK"));
+            msgDialog.ShowAsync();
         }
     }
 }

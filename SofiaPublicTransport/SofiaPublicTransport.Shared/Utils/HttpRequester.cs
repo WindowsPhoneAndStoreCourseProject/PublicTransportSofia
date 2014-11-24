@@ -30,6 +30,7 @@ namespace SofiaPublicTransport.Utils
             this.localSettings = ApplicationData.Current.LocalSettings;
             this.previousResponse = "";
             this.hasCaptcha = false;
+            this.localSettings.Values.Remove(StringResources.CookieNameInLocalSettings);
         }
 
         public static HttpRequester Instance

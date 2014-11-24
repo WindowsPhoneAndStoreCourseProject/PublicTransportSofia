@@ -254,7 +254,14 @@ namespace SofiaPublicTransport.ViewModels
 
         private async void CheckSchedulesAsync()
         {
-            await this.CheckSchedulesAsync(this.stationCode);
+            try
+            {
+                await this.CheckSchedulesAsync(this.stationCode);
+            }
+            catch(Exception e)
+            {
+
+            }
         }
 
         private async Task CheckSchedulesAsync(string code)
@@ -281,7 +288,6 @@ namespace SofiaPublicTransport.ViewModels
                 this.FavouritesButtonVisibility = isStationInFavourites ? Visibility.Collapsed : Visibility.Visible;
                 this.IsPopupForSchedulesOpen = true;
                 this.IsPopupForUserInputOpen = false;
-                await SetCaptchaURLPropertyAsync();
             }
             catch(Exception ex)
             {
@@ -292,6 +298,8 @@ namespace SofiaPublicTransport.ViewModels
                 msgDialog.Commands.Add(new UICommand("Не е яко!"));
                 msgDialog.ShowAsync();
             }
+
+            await SetCaptchaURLPropertyAsync();
             var debug = 1;
         }
 

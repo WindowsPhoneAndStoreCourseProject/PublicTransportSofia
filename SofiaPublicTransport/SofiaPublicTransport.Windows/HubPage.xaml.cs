@@ -15,6 +15,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Popups;
+using Windows.Networking.Connectivity;
 
 using SofiaPublicTransport.Data;
 using SofiaPublicTransport.DataModel;
@@ -35,6 +36,8 @@ namespace SofiaPublicTransport
         private NavigationHelper navigationHelper;
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
         public static event EventHandler ShowUserInputPopup;
+        NetworkStatusChangedEventHandler networkStatusCallback = null;
+        public static bool registeredNetworkStatusNotif = false;
 
         /// <summary>
         /// Gets the NavigationHelper used to aid in navigation and process lifetime management.
@@ -58,6 +61,19 @@ namespace SofiaPublicTransport
             this.navigationHelper = new NavigationHelper(this);
             this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
             this.DataContext = new ViewModelHubPage();
+            try
+            {
+                networkStatusCallback = new NetworkStatusChangedEventHandler(OnNetworkStatusChange);
+                if (!registeredNetworkStatusNotif)
+                {
+                    NetworkInformation.NetworkStatusChanged += networkStatusCallback;
+                    registeredNetworkStatusNotif = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowFailNetworkAccessAlert();
+            }
         }
 
 
@@ -174,6 +190,40 @@ namespace SofiaPublicTransport
 
             //Show message
             msgDialog.ShowAsync();
+        }
+
+        private async void OnNetworkStatusChange(object sender)
+        {
+            try
+            {
+                // get the ConnectionProfile that is currently used to connect to the Internet                
+                ConnectionProfile InternetConnectionProfile = NetworkInformation.GetInternetConnectionProfile();
+
+                if (InternetConnectionProfile != null && InternetConnectionProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess)
+                {
+                    MessageDialog msgDialog = new MessageDialog("В момента сте свързани с интернет", "Ура, имате интернет");
+                    msgDialog.Commands.Add(new UICommand("OK"));
+                    msgDialog.ShowAsync();
+                }
+                else
+                {
+                    MessageDialog msgDialog = new MessageDialog("Съжаляваме, но в момента нямате интернет връзка. Приложението няма да ви е от полза в такъв случай.", "Няма интернет");
+                    msgDialog.Commands.Add(new UICommand("OK"));
+                    await msgDialog.ShowAsync();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                //ShowFailNetworkAccessAlert();
+            }
+        }
+
+        private void ShowFailNetworkAccessAlert()
+        {
+                MessageDialog msgDialog = new MessageDialog("Съжаляваме, но няма да можем да Ви уведомяваме за наличието Ви на интернет връзка. Много вероятно е в момента да нямате.", "Възникна проблем");
+                msgDialog.Commands.Add(new UICommand("OK"));
+                msgDialog.ShowAsync();
         }
     }
 }

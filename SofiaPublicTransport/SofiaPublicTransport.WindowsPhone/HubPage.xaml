@@ -102,7 +102,8 @@
             <HubSection x:Uid="Section2Header">
                 <DataTemplate>
                     <ListBox ItemsSource="{Binding FavouriteStations}"
-                             Tapped="ListBox_Tapped">
+                             Tapped="OnListBoxTapped"
+                             DoubleTapped="OnListBoxDoubleTapped">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="0,0,0,27.5">
