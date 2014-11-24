@@ -9,5 +9,6 @@
         public const string CookiesNamesInLocalSettings = "cookie";
         public const string NoInformation = "\n\n_______________________________________________________\n\t\tНяма информация\t\t\n_______________________________________________________\n";
         public const string OnUnhandledExceptionUserMessage = "Съжаляваме, но нещо се обърка.\nВсе пак може да посетите http://m.sofiatraffic.bg/vt, за да видите разписанията ръчно.";
+        public const string Help = "Натиснете бутона Провери за да проверите разписанието по код на спирката или слайпнете надясно и кликнете на някоя от любимите Ви спирки, за да видите разписанието й.";
     }
 }

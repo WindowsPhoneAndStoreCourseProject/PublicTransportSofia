@@ -12,8 +12,10 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.UI.Popups;
 
 using SofiaPublicTransport.ViewModels;
+using SofiaPublicTransport.Utils;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -37,6 +39,13 @@ namespace SofiaPublicTransport.Views
             catch (Exception)
             {
             }   
+        }
+
+        private void OnHelpAppBarButtonClick(object sender, RoutedEventArgs e)
+        {
+            MessageDialog msgDialog = new MessageDialog(StringResources.Help, "Помощ");
+            msgDialog.Commands.Add(new UICommand("OK"));
+            msgDialog.ShowAsync();
         }
     }
 }
