@@ -22,10 +22,11 @@ namespace SofiaPublicTransport.ViewModels
         private bool isPopupForSchedulesOpen;
         private bool isPopupForUserInputOpen;
         private string stationName;
+        private ScheduleDataModel scheduleData;
         private ICommand checkCommand;
         private ICommand hidePopupCommand;
         private ICommand addToFavouritesCommand;
-       // private 
+        private string schedulesToString;
 
         public ViewModelPopupForUserInput()
             : this("", "", "", Visibility.Collapsed)
@@ -37,13 +38,16 @@ namespace SofiaPublicTransport.ViewModels
             this.SetCaptchaURLPropertyAsync();
             this.CaptchaURL = captchaURL;
             this.CaptchaText = captchaText;
-            this.StationCode = "2326";//stationCode;
+            this.StationCode = "1903";
             this.CaptchaVisibility = captchaVisibility;
             this.FavouritesButtonVisibility = Visibility.Collapsed;
             this.stationName = "";
+            this.SchedulesToString = "";
             this.IsPopupForSchedulesOpen = false;
             this.IsPopupForUserInputOpen = false;
+            this.ScheduleData = new ScheduleDataModel();
             CommandBarView.ShowUserInputPopup += this.ShowUserInputPopupNow;
+            HubPage.ShowUserInputPopup += this.ShowUserInputPopupNow;
         }
 
         public string CaptchaURL
@@ -56,6 +60,19 @@ namespace SofiaPublicTransport.ViewModels
             {
                 this.captchaURL = value;
                 this.OnPropertyChanged("CaptchaURL");
+            }
+        }
+
+        public string SchedulesToString
+        {
+            get
+            {
+                return this.schedulesToString;
+            }
+            set
+            {
+                this.schedulesToString = value;
+                this.OnPropertyChanged("SchedulesToString");
             }
         }
 
@@ -84,6 +101,19 @@ namespace SofiaPublicTransport.ViewModels
                 this.OnPropertyChanged("StationCode");
             }
         }
+        public ScheduleDataModel ScheduleData
+        {
+            get
+            {
+                return this.scheduleData;
+            }
+            set
+            {
+                this.scheduleData = value;
+                this.OnPropertyChanged("ScheduleData");
+            }
+        }
+
 
         public Visibility CaptchaVisibility
         {
@@ -192,6 +222,7 @@ namespace SofiaPublicTransport.ViewModels
                 MessageDialog msgDialog = new MessageDialog(String.Format("Спирка '{0}' беше успешно добавена към любимите Ви спирки.", this.stationName), "Успешно добавяне");
                 msgDialog.Commands.Add(new UICommand("OK"));
                 msgDialog.ShowAsync();
+                this.FavouritesButtonVisibility = Visibility.Collapsed;
             }
             catch (Exception ex)
             {
@@ -207,6 +238,10 @@ namespace SofiaPublicTransport.ViewModels
             {
                 this.IsPopupForUserInputOpen = true;
             }
+            else
+            {
+                this.CheckSchedulesAsync((string)sender);
+            }
         }
 
         private void HidePopups()
@@ -219,22 +254,44 @@ namespace SofiaPublicTransport.ViewModels
 
         private async void CheckSchedulesAsync()
         {
-            ScheduleDataModel schedules = await HttpRequester.Instance.GetSchedulesForStationAsync(this.StationCode, this.CaptchaText);
-       //     var viewModelSchedule = new ViewModelSchedule(schedules);
-      //      viewModelSchedule.Test = "How about now";
-          //  var scheduleView = new SchedulePopupView(viewModelSchedule);
-       //     SchedulePopupView.ScheduleDataContext = viewModelSchedule;
-       //     SchedulePopupView.PopupSchedule.Visibility = Visibility.Visible;
-      //      SchedulePopupView.PopupSchedule.IsOpen = true;
-          //  scheduleView.popup
-            //scheduleView.Visibility = Visibility.Visible;
-         //   this.IsPopupForUserInputOpen = true;
-            this.stationName = schedules.StationName;
-            bool isStationInFavourites = await SQLiteRequester.Instance.IsStationInFavouritesAsync(this.StationCode);
-            this.favouritesButtonVisibility = isStationInFavourites ? Visibility.Collapsed : Visibility.Visible;
-            this.IsPopupForSchedulesOpen = true;
-            this.IsPopupForUserInputOpen = false;
-            await SetCaptchaURLPropertyAsync();
+            await this.CheckSchedulesAsync(this.stationCode);
+        }
+
+        private async Task CheckSchedulesAsync(string code)
+        {
+            int checkIfCodeIsValid;
+            if (!int.TryParse(code, out checkIfCodeIsValid))
+            {
+                MessageDialog msgDialog = new MessageDialog(String.Format("Кода на спирката се състои само от цифри!", this.stationName), "Невалиден код на спирка");
+                msgDialog.Commands.Add(new UICommand("OK"));
+                msgDialog.ShowAsync();
+                return;
+            }
+
+            try
+            {
+                EntireScheduleDataModel schedules = await HttpRequester.Instance.GetSchedulesForStationAsync(code, this.CaptchaText);
+                this.stationName = schedules.StationName;
+                this.SchedulesToString = schedules.ToString();
+                bool isStationInFavourites = true;
+                if(!string.IsNullOrEmpty(this.stationName))
+                {
+                    isStationInFavourites = await SQLiteRequester.Instance.IsStationInFavouritesAsync(code);
+                }
+                this.FavouritesButtonVisibility = isStationInFavourites ? Visibility.Collapsed : Visibility.Visible;
+                this.IsPopupForSchedulesOpen = true;
+                this.IsPopupForUserInputOpen = false;
+                await SetCaptchaURLPropertyAsync();
+            }
+            catch(Exception ex)
+            {
+                MessageDialog msgDialog =
+                    new MessageDialog(String.Format(StringResources.OnUnhandledExceptionUserMessage,
+                        this.stationName),
+                    "Възникна проблем");
+                msgDialog.Commands.Add(new UICommand("Не е яко!"));
+                msgDialog.ShowAsync();
+            }
             var debug = 1;
         }
 

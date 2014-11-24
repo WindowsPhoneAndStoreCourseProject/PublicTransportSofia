@@ -26,31 +26,16 @@ namespace SofiaPublicTransport.Views
         public CommandBarView()
         {
             this.InitializeComponent();
-            //this.DataContext = new ViewModelPopupForUserInput();
         }
 
         private void OnFindAppBarButtonClick(object sender, RoutedEventArgs e)
         {
-            //var appBarButton = sender as AppBarButton;
-
-            //var commandBar = appBarButton.Parent;// as AppBar;
-            //var test = appBarButton.Parent as CommandBar;
-            //if(commandBar == null)
-            //{
-            //    return;
-            //}
-
-            //var page = commandBar.Parent as HubPage;
-            //PopupForUserInputView.PopupForUserInput.Visibility = Visibility.Visible;
-           // PopupForUserInputView.PopupForUserInput.IsOpen = true;
             try
             {
                 ShowUserInputPopup("CommandBarView", new EventArgs());
             }
             catch (Exception)
             {
-
-
             }   
         }
     }

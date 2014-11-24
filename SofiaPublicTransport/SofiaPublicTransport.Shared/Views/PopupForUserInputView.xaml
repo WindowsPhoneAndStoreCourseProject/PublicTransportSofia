@@ -44,10 +44,13 @@
                     <TextBox Name="TextBoxStationCode"
                              Width="90"
                              Text="{Binding StationCode, Mode=TwoWay}"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center">
                         <Button Content="Провери"
+                                Margin="5"
                                 Command="{Binding Check}"/>
                         <Button Content="Отказ"
+                                 Margin="5"
                                 Command="{Binding HidePopup}"/>
                     </StackPanel>
                 </StackPanel>
@@ -60,10 +63,10 @@
                             Background="Black"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" >
-                    <TextBlock Text="StationCode"
-                           FontSize="50"/>
-                    <TextBlock Text="{Binding StationCode}"
-                               FontSize="50"/>
+                    <StackPanel>
+                        <TextBlock Text="{Binding SchedulesToString}"
+                                   FontSize="15"/>
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button Content="В любими"
                                 Visibility="{Binding FavouritesButtonVisibility}"

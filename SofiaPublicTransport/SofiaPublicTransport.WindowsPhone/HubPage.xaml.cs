@@ -21,6 +21,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 
+using SofiaPublicTransport.ViewModels;
 // The Universal Hub Application project template is documented at http://go.microsoft.com/fwlink/?LinkID=391955
 
 namespace SofiaPublicTransport
@@ -46,6 +47,8 @@ namespace SofiaPublicTransport
             this.navigationHelper = new NavigationHelper(this);
             this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
             this.navigationHelper.SaveState += this.NavigationHelper_SaveState;
+            this.DataContext = new ViewModelHubPage();
+
         }
 
         /// <summary>
@@ -133,5 +136,10 @@ namespace SofiaPublicTransport
         }
 
         #endregion
+
+        private void ListBox_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+
+        }
     }
 }

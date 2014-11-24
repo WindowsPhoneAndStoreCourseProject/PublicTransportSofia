@@ -17,6 +17,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Commands\DelegateCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataModel\ArrivalTimeDataModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataModel\EntireScheduleDataModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataModel\SampleDataSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataModel\ScheduleDataModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataModel\StationDataModel.cs" />
@@ -26,8 +27,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\SQLiteAsync.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\SQLiteRequester.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\StringResources.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelHubPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelPopupForUserInput.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelSchedule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\CommandBarView.xaml.cs">
       <DependentUpon>CommandBarView.xaml</DependentUpon>

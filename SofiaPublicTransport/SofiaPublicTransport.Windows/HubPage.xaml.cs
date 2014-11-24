@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
+
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -12,10 +14,13 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.UI.Popups;
 
 using SofiaPublicTransport.Data;
+using SofiaPublicTransport.DataModel;
 using SofiaPublicTransport.Common;
 using SofiaPublicTransport.ViewModels;
+using SofiaPublicTransport.Utils;
 
 
 // The Universal Hub Application project template is documented at http://go.microsoft.com/fwlink/?LinkID=391955
@@ -29,7 +34,7 @@ namespace SofiaPublicTransport
     {
         private NavigationHelper navigationHelper;
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
-        public static Popup PopupForUserInput = default(Popup);
+        public static event EventHandler ShowUserInputPopup;
 
         /// <summary>
         /// Gets the NavigationHelper used to aid in navigation and process lifetime management.
@@ -52,6 +57,7 @@ namespace SofiaPublicTransport
             this.InitializeComponent();
             this.navigationHelper = new NavigationHelper(this);
             this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
+            this.DataContext = new ViewModelHubPage();
         }
 
 
@@ -109,12 +115,65 @@ namespace SofiaPublicTransport
         }
 
         #endregion
+        bool singleTap;
 
-        private void onPopupForUserInputLoaded(object sender, RoutedEventArgs e)
+        private async void OnListBoxTapped(object sender, TappedRoutedEventArgs e)
         {
-            HubPage.PopupForUserInput = sender as Popup;
+            this.singleTap = true;
+            await Task.Delay(200);
+            if (this.singleTap)
+            {
+                var listBox = sender as ListBox;
+                var selectedItem = listBox.SelectedItem as StationDataModel;
+                //var eventArguments = new EventArgs();
+                //eventArguments.
+                try
+                {
+                    ShowUserInputPopup(selectedItem.Code, new EventArgs());
+                }
+                catch (Exception)
+                {
+                }
+                var debug = 2;
+            }
         }
 
-        
+        private async void OkBtnClick(IUICommand command)
+        {
+            try
+            {
+                await SQLiteRequester.Instance.DeleteFavouriteStationAsync(command.Id.ToString());
+                MessageDialog msgDialog = new MessageDialog("Спирката вече не е в любими", "Успешно изтриване");
+                msgDialog.Commands.Add(new UICommand("ОК"));
+                msgDialog.ShowAsync();
+            }
+            catch(Exception e)
+            {
+                MessageDialog msgDialog = new MessageDialog("За съжаление не успяхме да изтрием тази спирка", "Неуспешно изтриване");
+                msgDialog.Commands.Add(new UICommand("Ще го преживея"));
+                msgDialog.ShowAsync();
+            }
+        }
+
+        private void OnListBoxDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        {
+            this.singleTap = false;
+            var listBox = sender as ListBox;
+            var selectedItem = listBox.SelectedItem as StationDataModel;
+
+            MessageDialog msgDialog = new MessageDialog("Искате ли да изтриете тази спирка от любими", "Сигурни ли сте");
+
+            //OK Button
+            UICommand okBtn = new UICommand("Да");
+            okBtn.Id = int.Parse(selectedItem.Code);
+            okBtn.Invoked = OkBtnClick;
+            msgDialog.Commands.Add(okBtn);
+
+            //Cancel Button
+            msgDialog.Commands.Add(new UICommand("Не"));
+
+            //Show message
+            msgDialog.ShowAsync();
+        }
     }
 }

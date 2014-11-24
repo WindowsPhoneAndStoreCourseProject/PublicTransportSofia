@@ -1,5 +1,6 @@
 ﻿using Windows.Devices.Geolocation;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 #if WINDOWS_APP
 using Bing.Maps;
@@ -43,5 +44,14 @@ namespace SofiaPublicTransport
         //Add any required Windows Phone Extensions
 
 #endif
+
+        public static void AddRange<T>(this ObservableCollection<T> collection,
+           IEnumerable<T> items)
+        {
+            foreach (var item in items)
+            {
+                collection.Add(item);
+            }
+        }
     }
 }

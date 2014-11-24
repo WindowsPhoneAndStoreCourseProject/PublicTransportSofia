@@ -49,9 +49,11 @@ namespace SofiaPublicTransport.Utils
         {
             var responseHeadersKeys = headers.Keys.ToList();
             var responseHeadersValues = headers.Values.ToList();
-            var indexOfCoookies = responseHeadersKeys.IndexOf(StringResources.SetCookie);
+           // var indexOfCoookies = responseHeadersKeys.IndexOf(StringResources.SetCookie);
+            var cookiesList = responseHeadersKeys.Zip(responseHeadersValues, (k, v) => new { k, v })
+                .Where(x => x.k == "Set-Cookie").Select(x => x.v);
             var debug = 7;
-            var cookies = responseHeadersValues[indexOfCoookies];
+            var cookies = string.Join("; ", cookiesList);//responseHeadersValues[indexOfCoookies];
             string pattern = " .*, *";//to replace " path=/, ";
             string replacement = " ";
             Regex regex = new Regex(pattern);
@@ -91,8 +93,7 @@ namespace SofiaPublicTransport.Utils
 
             this.localSettings.Values[StringResources.CookieNameInLocalSettings] = currentSavedCookies;
             var again = this.LoadCookiesFromLocalSettings();
-            //var cookies = responseHeadersKeys.Zip(responseHeadersValues, (k, v) => new { k, v })
-            //    .Where(x => x.k == "Set-Cookie").Select(x => x.v).FirstOrDefault();
+            
 
             // "PHPSESSID=je4ekdi3ak5842peto4rv3pn62; vjfmrii=89ea942e251ce5928a442d2c8f053d5c; alpocjengi=d98c07b1c96658a22074ec291e3163628c716843"
 
@@ -157,8 +158,17 @@ namespace SofiaPublicTransport.Utils
             //  var httpClient = new HttpClient();
             //  this.localSettings.Values.Remove(StringResources.)
             this.client.DefaultRequestHeaders.Clear();
+            HttpResponseMessage aResponse;
             this.SetDefaultHeaders();
-            HttpResponseMessage aResponse = await this.client.GetAsync(uri);//PostAsync(new Uri("http://m.sofiatraffic.bg/vt"), theContent);
+            try
+            {
+                aResponse = await this.client.GetAsync(uri);//PostAsync(new Uri("http://m.sofiatraffic.bg/vt"), theContent);
+            }
+            catch(Exception ex)
+            {
+                var debug = 1;
+                throw;
+            }
             // var responseHeadersKeys =  aResponse.
             var pageContent = await aResponse.Content.ReadAsStringAsync();//await this.client.GetStringAsync(uri);
 
@@ -237,21 +247,79 @@ namespace SofiaPublicTransport.Utils
             headers.Add("Referer", "http://m.sofiatraffic.bg/vt");
         }
 
-        public async Task<ScheduleDataModel> GetSchedulesForStationAsync(string stationCode, string captcha)
+        public async Task<EntireScheduleDataModel> GetSchedulesForStationAsync(string stationCode, string captcha)
         {
             //var body = String.Format("grant_type=client_credentials&client_id={0}&client_secret={1}&scope=notify.windows.com", MyCredentials, MyCredentials2);
+            await this.GetSchedulesAsync(stationCode, captcha);
+            var schedule = await GetAllSchedulesForStationAsync(stationCode, captcha);
+            return schedule;
+        }
 
+        private async Task GetSchedulesAsync(string stationCode, string captcha)
+        {
             var body = SetBodyForPostRequest(stationCode, captcha);
+            var de = 2;
             HttpStringContent theContent = new HttpStringContent(body, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/x-www-form-urlencoded");
             this.client.DefaultRequestHeaders.Clear();
             this.SetDefaultHeaders();
             this.SetPostHeaders();
             HttpResponseMessage aResponse = await client.PostAsync(new Uri("http://m.sofiatraffic.bg/vt"), theContent);
             this.previousResponse = await aResponse.Content.ReadAsStringAsync();
+        }
+
+        private async Task<EntireScheduleDataModel> GetAllSchedulesForStationAsync(string stationCode, string captcha)
+        {
+            HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            htmlDoc.OptionFixNestedTags = true;
+            htmlDoc.LoadHtml(this.previousResponse);
+            var entireSchedule = new EntireScheduleDataModel();
+            var schedules = new List<ScheduleDataModel>();
+            if (htmlDoc.ParseErrors != null && htmlDoc.ParseErrors.Count() > 0)
+            {
+            }
+            else
+            {
+                if (htmlDoc.DocumentNode != null)
+                {
+                    var infoNode = htmlDoc.DocumentNode.Descendants("div").Where(d =>
+                    d.Attributes.Contains("class") && d.Attributes["class"].Value.Contains("info")).FirstOrDefault();
+                    var moreInfoNode = infoNode.NextSibling;
+                    var info = infoNode.InnerText.Trim() + " " + moreInfoNode.InnerText.Trim();
+                    info = info.Replace("&quot;" + stationCode + "&quot;", "");
+                    var stationNameNode = moreInfoNode.NextSibling.NextSibling.NextSibling.NextSibling;
+                    var stationName = stationNameNode.InnerText;
+                    stationName = stationName.Replace("&nbsp;(" + stationCode + ")", "");
+                    stationName = stationName.Replace("&nbsp;()", "");
+                    stationName = stationName.Replace("1.", "").Trim();
+                    info += stationName;
+                    entireSchedule.StationName = stationName;
+                    entireSchedule.Info = info;
+                    var forms = htmlDoc.DocumentNode.Descendants("form").ToList();
+                    if(forms.Count == 3)
+                    {
+                        schedules.Add(this.ExtractSchedule());
+                        await this.GetSchedulesAsync(stationCode, captcha);
+                        schedules.Add(this.ExtractSchedule());
+                    }
+                    else
+                    {
+                        schedules.Add(this.ExtractSchedule());
+                    }
+
+                    entireSchedule.Schedules = schedules;
+                }
+            }
+
+            return entireSchedule;
+        }
+
+        private ScheduleDataModel ExtractSchedule()
+        {
             HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
             htmlDoc.OptionFixNestedTags = true;
             htmlDoc.LoadHtml(this.previousResponse);
             var schedule = new ScheduleDataModel();
+
             if (htmlDoc.ParseErrors != null && htmlDoc.ParseErrors.Count() > 0)
             {
             }
@@ -288,36 +356,7 @@ namespace SofiaPublicTransport.Utils
                     }
                 }
             }
-            //var content = aResponse.Content;
-            //var con = await content.ReadAsStringAsync();
-            //var headers = aResponse.Headers;
-            //StringBuilder sb = new StringBuilder();
-            //foreach (var header in responseHeaders)
-            //{
-            //    var h = String.Format("Header: {0} ", header);
-            //    sb.Append(h + "\n");
-            //}
 
-            //var res = sb.ToString();
-            //  var uri = new Uri("http://m.sofiatraffic.bg/vt");
-            //  var httpClient = new HttpClient();
-            ////  httpClient.DefaultRequestHeaders.
-            //  var userAgnet = httpClient.DefaultRequestHeaders.UserAgent;
-            //  string result;
-            //  // Always catch network exceptions for async methods
-            //  try
-            //  {
-            //      result = await httpClient.GetStringAsync(uri);
-            //  }
-            //  catch
-            //  {
-            //      // Details in ex.Message and ex.HResult.       
-            //  }
-
-            //  // Once your app is done using the HttpClient object call dispose to 
-            //  // free up system resources (the underlying socket and memory used for the object)
-            //  httpClient.Dispose();
-            var debug = 1;
             return schedule;
         }
     }

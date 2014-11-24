@@ -127,16 +127,21 @@ namespace SofiaPublicTransport.Utils
         //    }
         //}
 
+        public async Task<List<StationDataModel>> GetAllStationsFromFavourites()
+        {
+            SQLiteAsyncConnection conn = new SQLiteAsyncConnection(dbName);
+            var stations = await conn.Table<StationDataModel>().ToListAsync();
+            return stations;
+        }
+
         public async Task DeleteFavouriteStationAsync(string code)
         {
             SQLiteAsyncConnection conn = new SQLiteAsyncConnection(dbName);
 
-            // Retrieve Article
-            var article = await conn.Table<StationDataModel>().Where(x => x.Code == code).FirstOrDefaultAsync();
-            if (article != null)
+            var station = await conn.Table<StationDataModel>().Where(x => x.Code == code).FirstOrDefaultAsync();
+            if (station != null)
             {
-                // Delete record
-                await conn.DeleteAsync(article);
+                await conn.DeleteAsync(station);
             }
         }
 

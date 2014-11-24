@@ -10,8 +10,14 @@
    
     
     <!--<CommandBar.PrimaryCommands>-->
-    <AppBarButton x:Uid="Hel" Icon="Help"/>
-        <AppBarButton x:Uid="Find" Icon="Find"  IsEnabled="True" Click="OnFindAppBarButtonClick"/>
+    <AppBarButton x:Uid="Help" Icon="Help">
+        <AppBarButton.Flyout>
+            <MenuFlyout>
+                <MenuFlyoutItem x:Uid="HelpDetails" Height="500"/>
+            </MenuFlyout>
+        </AppBarButton.Flyout>
+    </AppBarButton>
+    <AppBarButton x:Uid="Find" Icon="Find"  IsEnabled="True" Click="OnFindAppBarButtonClick"/>
     <!--</CommandBar.PrimaryCommands>-->
     <!--<CommandBar.SecondaryCommands>
         <AppBarButton Icon="Help" Label="Help"></AppBarButton>

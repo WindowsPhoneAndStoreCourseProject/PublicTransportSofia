@@ -73,8 +73,8 @@
 
     <Grid x:Name="LayoutRoot">
         <Hub x:Name="Hub" x:Uid="Hub" Header="application name" Background="{ThemeResource HubBackgroundImageBrush}">
-            <HubSection x:Uid="HubSection1" Header="SECTION 1" Width="Auto"
-                         DataContext="{Binding Groups[0]}" HeaderTemplate="{ThemeResource HubSectionHeaderTemplate}">
+            <HubSection x:Uid="Section1Header" Width="Auto"
+                         HeaderTemplate="{ThemeResource HubSectionHeaderTemplate}">
                 <!--<DataTemplate>
                     <GridView
                         Margin="0,9.5,0,0"
@@ -95,25 +95,23 @@
                 <DataTemplate>
                     <Grid>
                         <views:PopupForUserInputView x:Name="PopupForUserInput"/>
-                        <views:SchedulePopupView x:Name="PopupSchedule"/>
                         <views:MapView x:Name="MyMap" Credentials="AnfJjMo9oM5Pcfoy7XgLa23qmaNPKml4x1McfwENLuLC8eYbZwERn46kN3uq76u_"/>
                     </Grid>
                 </DataTemplate>
             </HubSection>
-            <HubSection x:Uid="HubSection2" Header="SECTION 2" DataContext="{Binding Groups}" HeaderTemplate="{ThemeResource HubSectionHeaderTemplate}">
+            <HubSection x:Uid="Section2Header">
                 <DataTemplate>
-                    <ListView
-                        ItemsSource="{Binding}"
-                        IsItemClickEnabled="True"
-                        ContinuumNavigationTransitionInfo.ExitElementContainer="True">
-                        <ListView.ItemTemplate>
+                    <ListBox ItemsSource="{Binding FavouriteStations}"
+                             Tapped="ListBox_Tapped">
+                        <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="0,0,0,27.5">
-                                    <TextBlock Text="{Binding Title}" Style="{ThemeResource ListViewItemTextBlockStyle}" />
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="25"/>
                                 </StackPanel>
                             </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </DataTemplate>
             </HubSection>
         </Hub>
